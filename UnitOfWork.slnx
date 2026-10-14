@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/UnitOfWork.Abstractions/UnitOfWork.Abstractions.csproj" Id="cdcda1cd-60ff-4677-96d2-6e77e13ea5a1" />
+  <Project Path="test/UnitOfWork.Abstractions.UnitTests/UnitOfWork.Abstractions.UnitTests.csproj" Id="f8e81549-9fcc-4f25-8290-ceb1fb61e80b" />
+</Solution>
