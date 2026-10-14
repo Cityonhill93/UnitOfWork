@@ -14,6 +14,6 @@ namespace UnitOfWork.Abstractions
         /// Returns the expression that is used to filter the entities that match the specification.
         /// </summary>
         /// <returns></returns>
-        Expression<Func<TEntity, bool>> ToExpression();
+        Expression<Func<TEntity, bool>> GetWhereExpression();
     }
 }
