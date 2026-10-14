@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\UnitOfWork.Abstractions\UnitOfWork.Abstractions.csproj" />
+    <ProjectReference Include="..\UnitOfWork.UnitTests.Common\UnitOfWork.UnitTests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
