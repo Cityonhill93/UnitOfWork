@@ -10,5 +10,6 @@ namespace UnitOfWork.UnitTests.Common.Entities
         public string? LastName { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public string? Email { get; set; }
+        public ICollection<Address> Addresses { get; set; } = new List<Address>();
     }
 }

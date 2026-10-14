@@ -45,8 +45,10 @@ namespace UnitOfWork.EfCore.UnitTests
             Assert.Equal("one", saved!.FirstName);
         }
 
-        [Fact]
-        public async Task GetAsync_Returns_Filtered_Items()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetAsync_Returns_Filtered_Items(bool includeAddresses)
         {
             var data = new List<Person>
             {
@@ -54,26 +56,46 @@ namespace UnitOfWork.EfCore.UnitTests
                 new Person { Id = 2, FirstName = "two", LastName = "b", Email = "2@x.com", DateOfBirth = new System.DateOnly(1991, 1, 1) }
             };
 
+            var dbName = System.Guid.NewGuid().ToString();
             var options = new DbContextOptionsBuilder<PersonTestDbContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: dbName)
                 .Options;
 
-            await using var context = new PersonTestDbContext(options);
-            await context.People.AddRangeAsync(data);
-            await context.SaveChangesAsync();
+            // attach an address to person 2 to verify include behavior
+            var addr = new Address { Id = 11, Street1 = "100 Main St", City = "Town", State = "TS", PostalCode = "12345" };
+            data[1].Addresses.Add(addr);
 
+            await using (var seedContext = new PersonTestDbContext(options))
+            {
+                await seedContext.People.AddRangeAsync(data);
+                await seedContext.SaveChangesAsync();
+            }
+
+            await using var queryContext = new PersonTestDbContext(options);
             var spec = new PersonByIdSpecification(2);
+            var efSpec = new PersonEfSpecification(spec.GetWhereExpression(), includeAddresses);
 
-            var repo = new UnitOfWork.EfCore.PersonRepository(context.Set<Person>(), ct => context.SaveChangesAsync(ct));
+            var repo = new UnitOfWork.EfCore.PersonRepository(queryContext.Set<Person>(), ct => queryContext.SaveChangesAsync(ct));
 
-            var result = (await repo.GetAsync(spec)).ToList();
+            var result = (await repo.GetAsync(efSpec)).ToList();
 
             Assert.Single(result);
             Assert.Equal(2, result[0].Id);
+            if (includeAddresses)
+            {
+                Assert.NotEmpty(result[0].Addresses);
+                Assert.Equal("100 Main St", result[0].Addresses.First().Street1);
+            }
+            else
+            {
+                Assert.Empty(result[0].Addresses);
+            }
         }
 
-        [Fact]
-        public async Task GetFirstOrDefaultAsync_Returns_First_Matching_Item()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetFirstOrDefaultAsync_Returns_First_Matching_Item(bool includeAddresses)
         {
             var data = new List<Person>
             {
@@ -81,26 +103,46 @@ namespace UnitOfWork.EfCore.UnitTests
                 new Person { Id = 2, FirstName = "two", LastName = "b", Email = "2@x.com", DateOfBirth = new System.DateOnly(1991, 1, 1) }
             };
 
+            var dbName = System.Guid.NewGuid().ToString();
             var options = new DbContextOptionsBuilder<PersonTestDbContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: dbName)
                 .Options;
 
-            await using var context = new PersonTestDbContext(options);
-            await context.People.AddRangeAsync(data);
-            await context.SaveChangesAsync();
+            // attach address to person 1
+            var addr = new Address { Id = 21, Street1 = "200 Main St", City = "City", State = "CS", PostalCode = "54321" };
+            data[0].Addresses.Add(addr);
 
+            await using (var seedContext = new PersonTestDbContext(options))
+            {
+                await seedContext.People.AddRangeAsync(data);
+                await seedContext.SaveChangesAsync();
+            }
+
+            await using var queryContext = new PersonTestDbContext(options);
             var spec = new PersonByIdSpecification(1);
+            var efSpec = new PersonEfSpecification(spec.GetWhereExpression(), includeAddresses);
 
-            var repo = new UnitOfWork.EfCore.PersonRepository(context.Set<Person>(), ct => context.SaveChangesAsync(ct));
+            var repo = new UnitOfWork.EfCore.PersonRepository(queryContext.Set<Person>(), ct => queryContext.SaveChangesAsync(ct));
 
-            var result = await repo.GetFirstOrDefaultAsync(spec);
+            var result = await repo.GetFirstOrDefaultAsync(efSpec);
 
             Assert.NotNull(result);
             Assert.Equal(1, result!.Id);
+            if (includeAddresses)
+            {
+                Assert.NotEmpty(result.Addresses);
+                Assert.Equal("200 Main St", result.Addresses.First().Street1);
+            }
+            else
+            {
+                Assert.Empty(result.Addresses);
+            }
         }
 
-        [Fact]
-        public async Task GetFirstOrDefaultAsync_Returns_Null_When_No_Match()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetFirstOrDefaultAsync_Returns_Null_When_No_Match(bool includeAddresses)
         {
             var data = new List<Person>
             {
@@ -108,25 +150,32 @@ namespace UnitOfWork.EfCore.UnitTests
                 new Person { Id = 2, FirstName = "two", LastName = "b", Email = "2@x.com", DateOfBirth = new System.DateOnly(1991, 1, 1) }
             };
 
+            var dbName = System.Guid.NewGuid().ToString();
             var options = new DbContextOptionsBuilder<PersonTestDbContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: dbName)
                 .Options;
 
-            await using var context = new PersonTestDbContext(options);
-            await context.People.AddRangeAsync(data);
-            await context.SaveChangesAsync();
+            await using (var seedContext = new PersonTestDbContext(options))
+            {
+                await seedContext.People.AddRangeAsync(data);
+                await seedContext.SaveChangesAsync();
+            }
 
+            await using var queryContext = new PersonTestDbContext(options);
             var spec = new PersonByIdSpecification(999);
+            var efSpec = new PersonEfSpecification(spec.GetWhereExpression(), includeAddresses);
 
-            var repo = new UnitOfWork.EfCore.PersonRepository(context.Set<Person>(), ct => context.SaveChangesAsync(ct));
+            var repo = new UnitOfWork.EfCore.PersonRepository(queryContext.Set<Person>(), ct => queryContext.SaveChangesAsync(ct));
 
-            var result = await repo.GetFirstOrDefaultAsync(spec);
+            var result = await repo.GetFirstOrDefaultAsync(efSpec);
 
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task GetAsync_Returns_Empty_When_No_Match()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GetAsync_Returns_Empty_When_No_Match(bool includeAddresses)
         {
             var data = new List<Person>
             {
@@ -134,18 +183,22 @@ namespace UnitOfWork.EfCore.UnitTests
                 new Person { Id = 2, FirstName = "two", LastName = "b", Email = "2@x.com", DateOfBirth = new System.DateOnly(1991, 1, 1) }
             };
 
+            var dbName = System.Guid.NewGuid().ToString();
             var options = new DbContextOptionsBuilder<PersonTestDbContext>()
-                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: dbName)
                 .Options;
 
-            await using var context = new PersonTestDbContext(options);
-            await context.People.AddRangeAsync(data);
-            await context.SaveChangesAsync();
+            await using (var seedContext = new PersonTestDbContext(options))
+            {
+                await seedContext.People.AddRangeAsync(data);
+                await seedContext.SaveChangesAsync();
+            }
 
+            await using var queryContext = new PersonTestDbContext(options);
             var spec = new PersonByIdSpecification(999);
-            var efSpec = new PersonEfSpecification(spec.GetWhereExpression());
+            var efSpec = new PersonEfSpecification(spec.GetWhereExpression(), includeAddresses);
 
-            var repo = new UnitOfWork.EfCore.PersonRepository(context.Set<Person>(), ct => context.SaveChangesAsync(ct));
+            var repo = new UnitOfWork.EfCore.PersonRepository(queryContext.Set<Person>(), ct => queryContext.SaveChangesAsync(ct));
 
             var result = await repo.GetAsync(efSpec);
 
