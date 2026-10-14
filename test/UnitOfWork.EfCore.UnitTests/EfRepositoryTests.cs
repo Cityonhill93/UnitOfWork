@@ -100,6 +100,32 @@ namespace UnitOfWork.EfCore.UnitTests
         }
 
         [Fact]
+        public async Task GetFirstOrDefaultAsync_Returns_Null_When_No_Match()
+        {
+            var data = new List<Person>
+            {
+                new Person { Id = 1, FirstName = "one", LastName = "a", Email = "1@x.com", DateOfBirth = new System.DateOnly(1990, 1, 1) },
+                new Person { Id = 2, FirstName = "two", LastName = "b", Email = "2@x.com", DateOfBirth = new System.DateOnly(1991, 1, 1) }
+            };
+
+            var options = new DbContextOptionsBuilder<PersonTestDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            await using var context = new PersonTestDbContext(options);
+            await context.People.AddRangeAsync(data);
+            await context.SaveChangesAsync();
+
+            var spec = new PersonByIdSpecification(999);
+
+            var repo = new UnitOfWork.EfCore.PersonRepository(context.Set<Person>(), ct => context.SaveChangesAsync(ct));
+
+            var result = await repo.GetFirstOrDefaultAsync(spec);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
         public async Task UpdateAsync_Applies_Action_To_Matching_Records_And_Saves()
         {
             var data = new List<Person>
