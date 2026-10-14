@@ -7,7 +7,7 @@ using UnitOfWork.Abstractions;
 
 namespace UnitOfWork.EfCore
 {
-    public abstract class EfRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
+    public class EfRepository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
     {
         private readonly DbSet<TEntity> _dbSet;
         private readonly Func<CancellationToken, Task> _saveChangesAsync;

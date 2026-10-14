@@ -3,4 +3,5 @@
   <Project Path="src/UnitOfWork.EfCore/UnitOfWork.EfCore.csproj" Id="c675c9d7-5850-4e60-a43c-f90b97fb069a" />
   <Project Path="test/UnitOfWork.Abstractions.UnitTests/UnitOfWork.Abstractions.UnitTests.csproj" Id="f8e81549-9fcc-4f25-8290-ceb1fb61e80b" />
   <Project Path="test/UnitOfWork.EfCore.UnitTests/UnitOfWork.EfCore.UnitTests.csproj" Id="47a9ec3c-7514-4de8-aeee-7f80eb073c4d" />
+  <Project Path="test/UnitOfWork.UnitTests.Common/UnitOfWork.UnitTests.Common.csproj" Id="44baa6c8-4dab-4758-a19a-2366f74a0167" />
 </Solution>
