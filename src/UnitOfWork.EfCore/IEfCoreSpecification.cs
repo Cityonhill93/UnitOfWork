@@ -17,6 +17,6 @@ namespace UnitOfWork.EfCore
         /// </summary>
         /// <typeparam name="TNavProperty"></typeparam>
         /// <returns></returns>
-        IEnumerable<Expression<Func<TEntity, TNavProperty>>> GetIncludes<TNavProperty>();
+        IEnumerable<Expression<Func<TEntity, IEntity>>> GetIncludes();
     }
 }
