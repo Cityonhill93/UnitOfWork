@@ -18,21 +18,37 @@ namespace UnitOfWork.Abstractions
         Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Deletes an existing <see cref="IEntity"/> from the data store.
+        /// Deletes all <see cref="IEntity"/>records that match the given <see cref="ISpecification{TEntity}"/>.
         /// </summary>
-        /// <param name="entity">The entity to delete.</param>
+        /// <param name="specification">The specification to match entities.</param>
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task DeleteAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates an existing <see cref="IEntity"/> in the data store.
+        /// Returns a single <see cref="IEntity"/> that matches the given <see cref="ISpecification{TEntity}"/> or null if no match is found.
         /// </summary>
-        /// <param name="entity">The entity to update.</param>
+        /// <param name="specification">The specification to match entities.</param>
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
+        Task<TEntity?> GetFirstOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Returns all <see cref="IEntity"/> records that match the given <see cref="ISpecification{TEntity}"/>.
+        /// </summary>
+        /// <param name="specification">The specification to match entities.</param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task<IEnumerable<TEntity>> GetAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates all <see cref="IEntity"/> records by executing <paramref name="updateAction"/>to all records that match the given <see cref="ISpecification{TEntity}"/>.
+        /// </summary>
+        /// <param name="specification">The specification to match entities.</param>
+        /// <param name="updateAction">The action to execute on each matching entity.</param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task UpdateAsync(ISpecification<TEntity> specification, Action<TEntity> updateAction, CancellationToken cancellationToken = default);
 
     }
 }
